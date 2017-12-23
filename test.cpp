@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <fstream>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/wait.h>
@@ -41,9 +42,11 @@
 #include <sys/time.h>
 #include "judge.h"
 #include "okcall.h"
+#include "json.hpp"
 
 #define Max(x, y) (x) > (y) ? (x) : (y)
 using namespace std;
+using json = nlohmann::json;
 //#define JUDGE_DEBUG
 extern int errno;
 const int MAXN = 8192;
@@ -66,6 +69,14 @@ void output_result(int result, int memory_usage = 0, int time_usage = 0)
     LOG_DEBUG("result: %d, %dKB %dms", result, memory_usage, time_usage);
     //#endif
     printf("%d %d %d\n", result, memory_usage, time_usage);
+}
+
+void output_result(json j, string path) {
+    ofstream myfile;
+    myfile.open(path);
+    myfile << j.dump(2);
+    myfile.close();
+    // printf("%s\n", j.dump(2).c_str());
 }
 
 void timeout(int signo)
@@ -467,6 +478,18 @@ bool isInFile(char *filename)
     return true;
 }
 
+json get_meta_json()
+{
+    FILE *ce_msg = fopen("meta.json", "r");
+    std::string message = "";
+    char tmp[1024];
+    while (fgets(tmp, sizeof(tmp), ce_msg)) {
+        message += tmp;
+    }
+
+    return json::parse(message);
+}
+
 void sigseg(int)
 {
     output_result(judge_conf::OJ_SE, 0, judge_conf::EXIT_UNPRIVILEGED);
@@ -513,6 +536,8 @@ int main(int argc, char *argv[])
         exit(judge_conf::EXIT_OK);
     }
 
+    json meta = get_meta_json();
+    json result = json::array();
     //运行 judge
     DIR * dp;
     struct dirent *dirp;
@@ -523,21 +548,23 @@ int main(int argc, char *argv[])
         output_result(judge_conf::OJ_SE, 0, judge_conf::EXIT_PRE_JUDGE);
         return judge_conf::EXIT_PRE_JUDGE;
     }
-    char nametmp[1024];
-    while((dirp = readdir(dp)) != NULL)
+    // char nametmp[1024];
+    for (auto& testcase : meta["testcases"])
     {
         struct rusage rused;
 
-        if (strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
-            continue;
-        if (isInFile(dirp->d_name))
-        {
-            strcpy(nametmp, dirp->d_name);
-            int len = strlen(nametmp);
-            nametmp[len-3] = '\0';
+        // if (strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
+        //     continue;
+        // if (isInFile(dirp->d_name))
+        // {
+            // strcpy(nametmp, dirp->d_name);
+            // int len = strlen(nametmp);
+            // nametmp[len-3] = '\0';
+            string nametmp = testcase["uuid"];
             problem::input_file = problem::data_dir + "/" + nametmp + ".in";
             problem::output_file_std = problem::data_dir + "/" + nametmp + ".out";
             problem::output_file = problem::temp_dir + "/" + nametmp + ".out";
+
 
 #ifdef JUDGE_DEBUG
             problem::Problem_debug();
@@ -801,14 +828,21 @@ int main(int argc, char *argv[])
                 problem::result = judge_conf::OJ_MLE;
             }
 
-            if (problem::result != judge_conf::OJ_AC && problem::result != judge_conf::OJ_PE)
-            {
-                break;
-            }
+            // if (problem::result != judge_conf::OJ_AC && problem::result != judge_conf::OJ_PE)
+            // {
+            //     break;
+            // }
+            json j = json::object();
+            j["uuid"] = nametmp;
+            j["result"] = problem::result;
+            j["time"] = problem::time_usage;
+            j["memory"] = problem::memory_usage;
+            result.push_back(j);
 
-        }//if (isInfile())
+        // }//if (isInfile())
 
     }//end while, next input file
-    output_result(problem::result, problem::memory_usage, problem::time_usage);
+    // output_result(problem::result, problem::memory_usage, problem::time_usage);
+    output_result(result, problem::temp_dir + "/result.json");
     return 0;
 }
