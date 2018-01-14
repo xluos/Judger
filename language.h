@@ -29,11 +29,11 @@ const LangSupport UnknownLang = {
 const LangSupport CLang = {
     "c", "Main.c", "tc.c", "tc.h",
 #ifdef JUDGE_DEBUG
-    {"gcc","Main.c","-o","Main", 
-    "-std=c99", "-O2", NULL},
+    {"gcc","Main.c","-o","Main",
+    "-std=c11", "-O2", NULL},
 #else
     {"gcc", "Main.c", "-o", "Main", "-Wall", "-lm",
-    "--static", "-std=c99", "-DONLINE_JUDGE", NULL },
+    "--static", "-std=c11", "-DONLINE_JUDGE", "-w", NULL },
 #endif
     {"./Main", NULL},
     1, 1, false
@@ -43,10 +43,10 @@ const LangSupport CppLang = {
     "c++", "Main.cpp", "tc.cpp", "tc.hpp",
 #ifdef JUDGE_DEBUG
     {"g++","Main.cpp","-o",
-    "Main", "-std=c++98", "-O2",NULL},
+    "Main", "-std=c++11", "-O2",NULL},
 #else
-    { "g++", "Main.cpp", "-o", "Main", "-std=c++98",
-     "-Wall","-lm", "--static", "-DONLINE_JUDGE", NULL },
+    { "g++", "Main.cpp", "-o", "Main", "-std=c++11",
+     "-Wall","-lm", "--static", "-DONLINE_JUDGE", "-w", NULL },
 #endif
     {"./Main", NULL},
     1, 1, false
