@@ -834,7 +834,7 @@ int main(int argc, char *argv[])
             // }
             json j = json::object();
             j["uuid"] = nametmp;
-            j["result"] = problem::result;
+            j["judge"] = problem::result;
             j["time"] = problem::time_usage;
             j["memory"] = problem::memory_usage;
             result.push_back(j);
