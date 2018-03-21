@@ -59,6 +59,12 @@ const int OJ_RE_JAVA    = 15;   //Java Run Time Exception
 
 ## 使用
 
+依赖:
+
+```bash
+apt-get install libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential
+```
+
 配置:
 
 对 `config.ini` 配置，其中将 `sysuser=root` 改为当前你正在使用的用户。
