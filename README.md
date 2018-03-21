@@ -103,3 +103,4 @@ const int LANG_JAVA     = 3;
 # 注意事项
 
 1. config.ini 必须和编译后的 Judge 放在同一个文件夹内
+2. `test.cpp` 790 行左右，删除了对 Java 安全性的检查，因此本评测机对 Java 语言的安全性把控可能达不到要求

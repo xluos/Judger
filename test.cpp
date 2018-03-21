@@ -787,7 +787,8 @@ int main(int argc, char *argv[])
                     syscall_id = regs.orig_rax;
 #endif
 
-                    if (syscall_id > 0 && (!is_valid_syscall(problem::lang, syscall_id, userexe, regs)))
+                    // 取消对 Java 安全性检查，否则该评测机不能正常运行
+                    if (judge_conf::LANG_JAVA != problem::lang && syscall_id > 0 && (!is_valid_syscall(problem::lang, syscall_id, userexe, regs)))
                     {
                         LOG_WARNING("error for syscall %d", syscall_id);
                         problem::result = judge_conf::OJ_RF;
@@ -805,7 +806,7 @@ int main(int argc, char *argv[])
                 }//while (true)
             }//else     userexe end
 
-            if (problem::result == judge_conf::OJ_RF) break;
+            // if (problem::result == judge_conf::OJ_RF) break;
 
             int time_tmp = rused.ru_utime.tv_sec*1000 + rused.ru_utime.tv_usec/1000
               + rused.ru_stime.tv_sec*1000 + rused.ru_stime.tv_usec/1000;
