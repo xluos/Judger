@@ -45,6 +45,7 @@
 #include "json.hpp"
 
 #define Max(x, y) (x) > (y) ? (x) : (y)
+#define is_space_char(a) ((a == ' ') || (a == '\t') || (a == '\n') || (a == '\r'))
 using namespace std;
 using json = nlohmann::json;
 //#define JUDGE_DEBUG
@@ -93,6 +94,9 @@ void compare_until_nonspace(int &c_std, int &c_usr, FILE *&fd_std, FILE *&fd_usr
     {
         if (c_std != c_usr)
         {
+            if (c_std == EOF || c_usr == EOF) {
+            return;
+	    }
             if (c_std == '\r' && c_usr == '\n')
             {
                 c_std = fgetc(fd_std);
@@ -277,11 +281,39 @@ int tt_compare_output(string &file_std, string &file_usr)
         for(;;)
         {
             compare_until_nonspace(c_std, c_usr, fd_std, fd_usr, ret);
-            while(!isspace(c_std) && !isspace(c_usr))
+            while(!isspace(c_std) || !isspace(c_usr))
             {
-            //    LOG_DEBUG("std: %c usr: %c", c_std, c_usr);
                 if (c_std == EOF && c_usr == EOF)
                     goto end;
+                // 如果只有一个文件结束
+                // 但是另一个文件的末尾是回车
+                // 那么也当做AC处理
+                // https://github.com/NJUST-FishTeam/OnlineJudgeCore/blob/master/core.h
+                if (c_std == EOF || c_usr == EOF) {
+                    FILE *fd_tmp;
+                    if (c_std == EOF) {
+                        if (!is_space_char(c_usr)) {
+                            ret = judge_conf::OJ_WA;
+                            goto end;
+                        }
+                        fd_tmp = fd_usr;
+                    } else {
+                        if (!is_space_char(c_std)) {
+                            ret = judge_conf::OJ_WA;
+                            goto end;
+                        }
+                        fd_tmp = fd_std;
+                    }
+                    int c;
+                    while ((c = fgetc(fd_tmp)) != EOF) {
+                        if (c == '\r') c = '\n';
+                        if (!is_space_char(c)) {
+                            ret = judge_conf::OJ_WA;
+                            goto end;
+                        }
+                    }
+                    goto end;
+                }
                 if (c_std != c_usr)
                 {
                     ret = judge_conf::OJ_WA;
