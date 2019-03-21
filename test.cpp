@@ -65,14 +65,16 @@ void output_result(int result, int memory_usage = 0, int time_usage = 0)
     //Bugfix：之前版本评测过程中每处错误发生时一般会直接exit，导致前台status一直Running
     //本次fix在所有SE导致的exit前都添加了对本函数的调用，并给出EXIT错误号，解决了此问题，更方便了SE发生时对系统进行调试
     //fixed By Sine 2014-03-05
-    if (result == judge_conf::OJ_SE || result == judge_conf::OJ_RF) time_usage *= -1;
+    if (result == judge_conf::OJ_SE || result == judge_conf::OJ_RF)
+        time_usage *= -1;
     //#ifdef JUDGE_DEBUG
     LOG_DEBUG("result: %d, %dKB %dms", result, memory_usage, time_usage);
     //#endif
     printf("%d %d %d\n", result, memory_usage, time_usage);
 }
 
-void output_result(json j, string path) {
+void output_result(json j, string path)
+{
     ofstream myfile;
     myfile.open(path);
     myfile << j.dump(2);
@@ -90,13 +92,14 @@ void timeout(int signo)
 //normal compare file
 void compare_until_nonspace(int &c_std, int &c_usr, FILE *&fd_std, FILE *&fd_usr, int &ret)
 {
-    while((isspace(c_std)) || (isspace(c_usr)))
+    while ((isspace(c_std)) || (isspace(c_usr)))
     {
         if (c_std != c_usr)
         {
-            if (c_std == EOF || c_usr == EOF) {
-            return;
-	    }
+            if (c_std == EOF || c_usr == EOF)
+            {
+                return;
+            }
             if (c_std == '\r' && c_usr == '\n')
             {
                 c_std = fgetc(fd_std);
@@ -119,19 +122,21 @@ void compare_until_nonspace(int &c_std, int &c_usr, FILE *&fd_std, FILE *&fd_usr
 void addfile(string &main_file, string &tc_file)
 {
     LOG_DEBUG("TC mode");
-    char cc[MAXN+5];
+    char cc[MAXN + 5];
     FILE *sc_fd = fopen(main_file.c_str(), "a+");
     FILE *tc_fd = fopen(tc_file.c_str(), "r");
     if (sc_fd && tc_fd)
     {
         fputs("\n", sc_fd);
-        while(fgets(cc, MAXN, tc_fd))
+        while (fgets(cc, MAXN, tc_fd))
         {
             fputs(cc, sc_fd);
         }
     }
-    if (sc_fd) fclose(sc_fd);
-    if (tc_fd) fclose(tc_fd);
+    if (sc_fd)
+        fclose(sc_fd);
+    if (tc_fd)
+        fclose(tc_fd);
 }
 
 int tc_mode()
@@ -148,17 +153,17 @@ int tc_mode()
 
 //特判
 int spj_compare_output(
-        string input_file,  //标准输入文件
-        string output_file, //用户程序的输出文件
-        string spj_path,    //spj路径, change it from exefile to the folder who store the exefile
-        string file_spj,    //spj的输出文件
-        string output_file_std)
+    string input_file,  //标准输入文件
+    string output_file, //用户程序的输出文件
+    string spj_path,    //spj路径, change it from exefile to the folder who store the exefile
+    string file_spj,    //spj的输出文件
+    string output_file_std)
 {
 #ifdef JUDGE_DEBUG__
-    cout<<"inputfile: "<<input_file<<endl;
-    cout<<"outputfile: "<<output_file<<endl;
-    cout<<"spj_exec: "<<spj_path<<endl;
-    cout<<"file_spj: "<<file_spj<<endl;
+    cout << "inputfile: " << input_file << endl;
+    cout << "outputfile: " << output_file << endl;
+    cout << "spj_exec: " << spj_path << endl;
+    cout << "file_spj: " << file_spj << endl;
 #endif
     /*
     Improve: Auto rebuild spj.exe while find spj.cpp
@@ -166,16 +171,16 @@ int spj_compare_output(
     Date & Time: 2013-11-10 08:03
     Author: Sine
     */
-    if (access((spj_path+"/spj.cpp").c_str(), 0) == 0)
+    if (access((spj_path + "/spj.cpp").c_str(), 0) == 0)
     {
         string syscmd = "g++ -o ";
-        syscmd += spj_path + "/"+problem::spj_exe_file+" " + spj_path + "/spj.cpp";
+        syscmd += spj_path + "/" + problem::spj_exe_file + " " + spj_path + "/spj.cpp";
         system(syscmd.c_str());
         syscmd = "mv -f ";
         syscmd += spj_path + "/spj.cpp " + spj_path + "/spj.oldcode";
         system(syscmd.c_str());
     }
-    if (access((spj_path+"/"+problem::spj_exe_file).c_str(), 0))
+    if (access((spj_path + "/" + problem::spj_exe_file).c_str(), 0))
     {
         output_result(judge_conf::OJ_SE, 0, judge_conf::EXIT_ACCESS_SPJ);
         exit(judge_conf::EXIT_ACCESS_SPJ);
@@ -197,9 +202,9 @@ int spj_compare_output(
         {
             log_close();
             //argv[1] 标准输入 ， argv[2] 用户程序输出, argv[3] 标准输出
-            if (execlp((spj_path+"/"+problem::spj_exe_file).c_str(),
-                problem::spj_exe_file.c_str(), input_file.c_str(),
-                output_file.c_str(), output_file_std.c_str(), NULL) < 0)
+            if (execlp((spj_path + "/" + problem::spj_exe_file).c_str(),
+                       problem::spj_exe_file.c_str(), input_file.c_str(),
+                       output_file.c_str(), output_file_std.c_str(), NULL) < 0)
             {
                 printf("spj execlp error\n");
             }
@@ -229,7 +234,8 @@ int spj_compare_output(
                 {
                     return judge_conf::OJ_WA;
                 }
-                if (fd) fclose(fd);
+                if (fd)
+                    fclose(fd);
                 if (strcmp(buf, "AC") == 0)
                 {
                     return judge_conf::OJ_AC;
@@ -256,8 +262,8 @@ int tt_compare_output(string &file_std, string &file_usr)
     FILE *fd_std = fopen(file_std.c_str(), "r");
     FILE *fd_usr = fopen(file_usr.c_str(), "r");
     //char *buffer;
-        //buffer = getcwd(NULL, 0);
-        //if (buffer != NULL) LOG_DEBUG("this is %s", buffer);
+    //buffer = getcwd(NULL, 0);
+    //if (buffer != NULL) LOG_DEBUG("this is %s", buffer);
 
     //LOG_DEBUG("The standard file is %s", file_std.c_str());
     if (fd_std == NULL)
@@ -266,7 +272,7 @@ int tt_compare_output(string &file_std, string &file_usr)
     }
     //if (fd_usr == NULL)
     //{
-        //LOG_BUG("open user file failed %s", file_usr.c_str());
+    //LOG_BUG("open user file failed %s", file_usr.c_str());
     //}
 
     if (!fd_std || !fd_usr)
@@ -278,10 +284,10 @@ int tt_compare_output(string &file_std, string &file_usr)
     {
         c_std = fgetc(fd_std);
         c_usr = fgetc(fd_usr);
-        for(;;)
+        for (;;)
         {
             compare_until_nonspace(c_std, c_usr, fd_std, fd_usr, ret);
-            while(!isspace(c_std) || !isspace(c_usr))
+            while (!isspace(c_std) || !isspace(c_usr))
             {
                 if (c_std == EOF && c_usr == EOF)
                     goto end;
@@ -289,25 +295,34 @@ int tt_compare_output(string &file_std, string &file_usr)
                 // 但是另一个文件的末尾是回车
                 // 那么也当做AC处理
                 // https://github.com/NJUST-FishTeam/OnlineJudgeCore/blob/master/core.h
-                if (c_std == EOF || c_usr == EOF) {
+                if (c_std == EOF || c_usr == EOF)
+                {
                     FILE *fd_tmp;
-                    if (c_std == EOF) {
-                        if (!is_space_char(c_usr)) {
+                    if (c_std == EOF)
+                    {
+                        if (!is_space_char(c_usr))
+                        {
                             ret = judge_conf::OJ_WA;
                             goto end;
                         }
                         fd_tmp = fd_usr;
-                    } else {
-                        if (!is_space_char(c_std)) {
+                    }
+                    else
+                    {
+                        if (!is_space_char(c_std))
+                        {
                             ret = judge_conf::OJ_WA;
                             goto end;
                         }
                         fd_tmp = fd_std;
                     }
                     int c;
-                    while ((c = fgetc(fd_tmp)) != EOF) {
-                        if (c == '\r') c = '\n';
-                        if (!is_space_char(c)) {
+                    while ((c = fgetc(fd_tmp)) != EOF)
+                    {
+                        if (c == '\r')
+                            c = '\n';
+                        if (!is_space_char(c))
+                        {
                             ret = judge_conf::OJ_WA;
                             goto end;
                         }
@@ -334,7 +349,7 @@ end:
 
 int compare_output(string &file_std, string &file_usr)
 {
-//    LOG_DEBUG("compare_output ");
+    //    LOG_DEBUG("compare_output ");
     return tt_compare_output(file_std, file_usr);
 }
 
@@ -342,23 +357,39 @@ void parse_arguments(int argc, char *argv[]) //根据命令设置好配置.
 {
     int opt;
     extern char *optarg;
-    while((opt = getopt(argc, argv, "l:D:d:t:m:o:S:T")) != -1)
+    while ((opt = getopt(argc, argv, "l:D:d:t:m:o:S:T")) != -1)
     {
         //LOG_DEBUG(" -%c", opt);
-        switch(opt)
+        switch (opt)
         {
-            case 'l': sscanf(optarg, "%d", &problem::lang); break;
-            case 'D': problem::data_dir = optarg; break;
-            case 'd': problem::temp_dir = optarg; break;
-            case 't': sscanf(optarg, "%d", &problem::time_limit); break;
-            case 'm': sscanf(optarg, "%d", &problem::memory_limit); break;
-            case 'o': sscanf(optarg, "%d", &problem::output_limit); break;
-            case 'S': problem::spj = true; break;
-            case 'T': problem::tc = true; break;
-            default:
-                    LOG_WARNING("unknown option -%c %s", opt, optarg);
-                    output_result(judge_conf::OJ_SE, 0, judge_conf::EXIT_BAD_PARAM);
-                    exit(judge_conf::EXIT_BAD_PARAM);
+        case 'l':
+            sscanf(optarg, "%d", &problem::lang);
+            break;
+        case 'D':
+            problem::data_dir = optarg;
+            break;
+        case 'd':
+            problem::temp_dir = optarg;
+            break;
+        case 't':
+            sscanf(optarg, "%d", &problem::time_limit);
+            break;
+        case 'm':
+            sscanf(optarg, "%d", &problem::memory_limit);
+            break;
+        case 'o':
+            sscanf(optarg, "%d", &problem::output_limit);
+            break;
+        case 'S':
+            problem::spj = true;
+            break;
+        case 'T':
+            problem::tc = true;
+            break;
+        default:
+            LOG_WARNING("unknown option -%c %s", opt, optarg);
+            output_result(judge_conf::OJ_SE, 0, judge_conf::EXIT_BAD_PARAM);
+            exit(judge_conf::EXIT_BAD_PARAM);
         }
     }
 
@@ -380,7 +411,6 @@ void parse_arguments(int argc, char *argv[]) //根据命令设置好配置.
 #endif
 }
 
-
 //redirect io
 void io_redirect()
 {
@@ -401,7 +431,7 @@ void set_limit()
 {
     rlimit lim;
     //时间限制
-    lim.rlim_cur = (problem::time_limit + 999)/1000 + 1;
+    lim.rlim_cur = (problem::time_limit + 999) / 1000 + 1;
     //LOG_DEBUG("rlim_cur(%d).", lim.rlim_cur);
     lim.rlim_max = lim.rlim_cur * 10;
     if (setrlimit(RLIMIT_CPU, &lim) < 0)
@@ -424,7 +454,7 @@ void set_limit()
          }*/
     //设置堆栈的大小    漏掉主程序会SIGSEGV
     getrlimit(RLIMIT_STACK, &lim);
-    int rlim = judge_conf::stack_size_limit*judge_conf::KILO;
+    int rlim = judge_conf::stack_size_limit * judge_conf::KILO;
     //LOG_DEBUG("set stack size : %d", rlim);
     if (lim.rlim_max <= rlim)
     {
@@ -468,10 +498,10 @@ int Compiler()
     else if (compiler == 0)
     {
         chdir(problem::temp_dir.c_str());
-        freopen("ce.txt", "w", stderr); //编译出错信息
+        freopen("ce.txt", "w", stderr);    //编译出错信息
         freopen("/dev/null", "w", stdout); //防止编译器在标准输出中输出额外的信息影响评测
         malarm(ITIMER_REAL, judge_conf::compile_time_limit);
-        execvp( Langs[problem::lang]->CompileCmd[0], (char * const *) Langs[problem::lang]->CompileCmd );
+        execvp(Langs[problem::lang]->CompileCmd[0], (char *const *)Langs[problem::lang]->CompileCmd);
         //execvp    error
         LOG_WARNING("compile evecvp error");
         exit(judge_conf::EXIT_COMPILE);
@@ -491,21 +521,22 @@ int getmemory(pid_t userexe)
     char fn[bufsize], buf[bufsize];
     sprintf(fn, "/proc/%d/status", userexe);
     pd = fopen(fn, "r");
-    while(pd && fgets(buf, bufsize-1, pd))    //这里漏掉了pd & 导致主进程SIGSEGV
+    while (pd && fgets(buf, bufsize - 1, pd)) //这里漏掉了pd & 导致主进程SIGSEGV
     {
         if (strncmp(buf, "VmPeak:", 7) == 0)
         {
-            sscanf(buf+8, "%d", &ret);
+            sscanf(buf + 8, "%d", &ret);
         }
     }
-    if (pd) fclose(pd); //9.19 发现漏了，会too many open file
+    if (pd)
+        fclose(pd); //9.19 发现漏了，会too many open file
     return ret;
 }
 
 bool isInFile(char *filename)
 {
     int len = strlen(filename);
-    if (len < 3 || strcmp(filename+len-3, ".in") != 0)
+    if (len < 3 || strcmp(filename + len - 3, ".in") != 0)
         return false;
     return true;
 }
@@ -515,7 +546,8 @@ json get_meta_json()
     FILE *ce_msg = fopen("meta.json", "r");
     std::string message = "";
     char tmp[1024];
-    while (fgets(tmp, sizeof(tmp), ce_msg)) {
+    while (fgets(tmp, sizeof(tmp), ce_msg))
+    {
         message += tmp;
     }
 
@@ -536,7 +568,7 @@ int main(int argc, char *argv[])
 #ifdef JUDGE_DEBUG
     LOG_DEBUG("start judge");
 #endif
-    if (geteuid() != 0)
+    if (geteuid() != 0) //判断root权限
     {
 #ifdef JUDGE_DEBUG
         LOG_DEBUG("euid %d != 0, please run as root , or chmod 4755 judge", geteuid());
@@ -544,6 +576,7 @@ int main(int argc, char *argv[])
         output_result(judge_conf::OJ_SE, 0, judge_conf::EXIT_UNPRIVILEGED);
         exit(judge_conf::EXIT_UNPRIVILEGED);
     }
+    // 解析参数
     parse_arguments(argc, argv);
     //设置judge运行时限
     if (EXIT_SUCCESS != malarm(ITIMER_REAL, judge_conf::judge_time_limit))
@@ -571,7 +604,7 @@ int main(int argc, char *argv[])
     json meta = get_meta_json();
     json result = json::array();
     //运行 judge
-    DIR * dp;
+    DIR *dp;
     struct dirent *dirp;
     dp = opendir(problem::data_dir.c_str());
     if (dp == NULL)
@@ -581,56 +614,47 @@ int main(int argc, char *argv[])
         return judge_conf::EXIT_PRE_JUDGE;
     }
     // char nametmp[1024];
-    for (auto& testcase : meta["testcases"])
+    for (auto &testcase : meta["testcases"])
     {
         struct rusage rused;
-
-        // if (strcmp(dirp->d_name, ".") == 0 || strcmp(dirp->d_name, "..") == 0)
-        //     continue;
-        // if (isInFile(dirp->d_name))
-        // {
-            // strcpy(nametmp, dirp->d_name);
-            // int len = strlen(nametmp);
-            // nametmp[len-3] = '\0';
-            string nametmp = testcase["uuid"];
-            problem::input_file = problem::data_dir + "/" + nametmp + ".in";
-            problem::output_file_std = problem::data_dir + "/" + nametmp + ".out";
-            problem::output_file = problem::temp_dir + "/" + nametmp + ".out";
-
+        string nametmp = testcase["uuid"];
+        problem::input_file = problem::data_dir + "/" + nametmp + ".in";
+        problem::output_file_std = problem::data_dir + "/" + nametmp + ".out";
+        problem::output_file = problem::temp_dir + "/" + nametmp + ".out";
 
 #ifdef JUDGE_DEBUG
-            problem::Problem_debug();
+        problem::Problem_debug();
 #endif
 
-            pid_t userexe = fork();
-            if (userexe < 0)
+        pid_t userexe = fork();
+        if (userexe < 0)
+        {
+            LOG_WARNING("fork for userexe failed, %d:%s", errno, strerror(errno));
+            output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_PRE_JUDGE);
+            exit(judge_conf::EXIT_PRE_JUDGE);
+        }
+        else if (userexe == 0)
+        {
+
+            signal(SIGSEGV, sigseg);
+            //重新定向io
+            io_redirect();
+
+            //设置运行根目录、运行用户
+            //获得运行用户的信息
+            struct passwd *judge = getpwnam(judge_conf::sysuser.c_str());
+            if (judge == NULL)
             {
-                LOG_WARNING("fork for userexe failed, %d:%s", errno, strerror(errno));
-                output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_PRE_JUDGE);
-                exit(judge_conf::EXIT_PRE_JUDGE);
+                LOG_BUG("no user named %s", judge_conf::sysuser.c_str());
+                exit(judge_conf::EXIT_SET_SECURITY);
             }
-            else if (userexe == 0)
+
+            //切换目录
+            if (EXIT_SUCCESS != chdir(problem::temp_dir.c_str()))
             {
-
-                signal(SIGSEGV, sigseg);
-                //重新定向io
-                io_redirect();
-
-                //设置运行根目录、运行用户
-                //获得运行用户的信息
-                struct passwd *judge = getpwnam(judge_conf::sysuser.c_str());
-                if (judge == NULL)
-                {
-                    LOG_BUG("no user named %s", judge_conf::sysuser.c_str());
-                    exit(judge_conf::EXIT_SET_SECURITY);
-                }
-
-                //切换目录
-                if (EXIT_SUCCESS != chdir(problem::temp_dir.c_str()))
-                {
-                    LOG_BUG("chdir failed");
-                    exit(judge_conf::EXIT_SET_SECURITY);
-                }
+                LOG_BUG("chdir failed");
+                exit(judge_conf::EXIT_SET_SECURITY);
+            }
             /*    char cwd[1024], *tmp = getcwd(cwd, 1024);
                 if (tmp == NULL)
                 { //获取当前目录失败
@@ -638,9 +662,9 @@ int main(int argc, char *argv[])
                     exit(judge_conf::EXIT_SET_SECURITY);
                 }*/
 
-                //#ifdef JUDEG_DEBUG
-                //这里现在在fedora下有bug
-                //设置根目录
+            //#ifdef JUDEG_DEBUG
+            //这里现在在fedora下有bug
+            //设置根目录
             /*    if (problem::lang == judge_conf::LANG_JAVA)
              *    {
                     if (EXIT_SUCCESS != chroot(cwd))
@@ -650,231 +674,229 @@ int main(int argc, char *argv[])
                     }
                 }*/
 
-                //#endif
-                //设置有效用户
-                if (EXIT_SUCCESS != setuid(judge->pw_uid))
-                {
-                    LOG_BUG("setuid failed");
-                    exit(judge_conf::EXIT_SET_SECURITY);
-                }
-
-
-                int user_time_limit = problem::time_limit + judge_conf::time_limit_addtion;
-
-                //设置用户程序的运行实际时间，防止意外情况卡住
-                if (EXIT_SUCCESS != malarm(ITIMER_REAL, user_time_limit))
-                {
-                    LOG_WARNING("malarm failed");
-                    exit(judge_conf::EXIT_PRE_JUDGE);
-                }
-
-                //ptrace 监控下面程序
-                if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) < 0)
-                {
-                    LOG_BUG("ptrace failed");
-                    exit(judge_conf::EXIT_PRE_JUDGE_PTRACE);
-                }
-
-                //用setrlimit 设置用户程序的 内存 时间 输出文件大小的限制
-                //log close for fsize
-                set_limit();
-
-                //运行程序
-                execvp( Langs[problem::lang]->RunCmd[0], (char * const *) Langs[problem::lang]->RunCmd );
-                int errsa = errno;
-                exit(judge_conf::EXIT_PRE_JUDGE_EXECLP);
-            }
-            else
+            //#endif
+            //设置有效用户
+            if (EXIT_SUCCESS != setuid(judge->pw_uid))
             {
-                //父进程监控子进程的状态和系统调用
+                LOG_BUG("setuid failed");
+                exit(judge_conf::EXIT_SET_SECURITY);
+            }
 
-                int status = 0;
-                int syscall_id = 0;
-                struct user_regs_struct regs;
+            int user_time_limit = problem::time_limit + judge_conf::time_limit_addtion;
 
-                init_ok_table(problem::lang);
+            //设置用户程序的运行实际时间，防止意外情况卡住
+            if (EXIT_SUCCESS != malarm(ITIMER_REAL, user_time_limit))
+            {
+                LOG_WARNING("malarm failed");
+                exit(judge_conf::EXIT_PRE_JUDGE);
+            }
 
-                while (true)
+            //ptrace 监控下面程序
+            if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) < 0)
+            {
+                LOG_BUG("ptrace failed");
+                exit(judge_conf::EXIT_PRE_JUDGE_PTRACE);
+            }
+
+            //用setrlimit 设置用户程序的 内存 时间 输出文件大小的限制
+            //log close for fsize
+            set_limit();
+
+            //运行程序
+            execvp(Langs[problem::lang]->RunCmd[0], (char *const *)Langs[problem::lang]->RunCmd);
+            int errsa = errno;
+            exit(judge_conf::EXIT_PRE_JUDGE_EXECLP);
+        }
+        else
+        {
+            //父进程监控子进程的状态和系统调用
+
+            int status = 0;
+            int syscall_id = 0;
+            struct user_regs_struct regs;
+
+            init_ok_table(problem::lang);
+
+            while (true)
+            {
+                if (wait4(userexe, &status, 0, &rused) < 0)
                 {
-                    if (wait4(userexe, &status, 0, &rused) < 0)
+                    LOG_BUG("wait4 failed, %d:%s", errno, strerror(errno));
+                    output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_JUDGE);
+                    exit(judge_conf::EXIT_JUDGE);
+                }
+                //如果是退出信号
+                if (WIFEXITED(status))
+                {
+                    //java 返回非0表示出错
+                    if (!Langs[problem::lang]->VMrunning || WEXITSTATUS(status) == EXIT_SUCCESS)
                     {
-                        LOG_BUG("wait4 failed, %d:%s", errno, strerror(errno));
-                        output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_JUDGE);
-                        exit(judge_conf::EXIT_JUDGE);
-                    }
-                    //如果是退出信号
-                    if (WIFEXITED(status))
-                    {
-                        //java 返回非0表示出错
-                        if (!Langs[problem::lang]->VMrunning || WEXITSTATUS(status) == EXIT_SUCCESS)
+                        int result;
+                        if (problem::spj)
                         {
-                            int result;
-                            if (problem::spj)
-                            {
-                                //spj
-                                result = spj_compare_output(problem::input_file,
-                                    problem::output_file,
-                                    problem::data_dir, //problem::spj_exe_file, modif y in 13-11-10
-                                    problem::temp_dir + "/" + problem::stdout_file_spj,
-                                    problem::output_file_std);
-                            }
-                            else
-                            {
-                                result = compare_output(problem::output_file_std, problem::output_file);
-                            }
-                            //记录结果
-                            if (result != judge_conf::OJ_AC)
-                            {
+                            //spj
+                            result = spj_compare_output(problem::input_file,
+                                                        problem::output_file,
+                                                        problem::data_dir, //problem::spj_exe_file, modif y in 13-11-10
+                                                        problem::temp_dir + "/" + problem::stdout_file_spj,
+                                                        problem::output_file_std);
+                        }
+                        else
+                        {
+                            result = compare_output(problem::output_file_std, problem::output_file);
+                        }
+                        //记录结果
+                        if (result != judge_conf::OJ_AC)
+                        {
+                            problem::result = result;
+                        }
+                        else
+                        {
+                            if (problem::result != judge_conf::OJ_PE)
                                 problem::result = result;
-                            }
-                            else
-                            {
-                                if (problem::result != judge_conf::OJ_PE)
-                                    problem::result = result;
-                            }
                         }
-                        else
-                        {
-                            LOG_BUG("abort quit code: %d\n", WEXITSTATUS(status));
-                            problem::result = judge_conf::OJ_RE_JAVA;
-                        }
-                        break;
-                    }
-
-                    // 收到信号
-                    // RE/TLE/OLE     超过sterlimit限制而结束
-                    // 且过滤掉被ptrace暂停的 SIGTRAP
-                    if (WIFSIGNALED(status) || (WIFSTOPPED(status) && WSTOPSIG(status) != SIGTRAP))
-                    {
-                        int signo = 0;
-                        if (WIFSIGNALED(status))
-                            signo = WTERMSIG(status);
-                        else
-                            signo = WSTOPSIG(status);
-                        switch(signo)
-                        {
-                            //TLE
-                //            case SIGALRM:
-                                //LOG_BUG("ALRM");
-                            case SIGXCPU:
-                                //LOG_BUG("XCPU");
-                //            case SIGVTALRM:
-                                //LOG_BUG("TALRM");
-                            case SIGKILL:
-                                //LOG_BUG("KILL");
-                                problem::result = judge_conf::OJ_TLE;
-                                problem::time_usage = problem::time_limit;
-                                break;
-                            //OLE
-                            case SIGXFSZ:
-                                problem::result = judge_conf::OJ_OLE;
-                                break;
-                            case SIGSEGV:
-                                problem::result = judge_conf::OJ_RE_SEGV;
-                                break;
-                            case SIGABRT:
-                                problem::result = judge_conf::OJ_RE_ABRT;
-                                break;
-                            default:
-                                problem::result = judge_conf::OJ_RE_UNKNOW;
-                        }
-                        //This is a debug
-                        LOG_DEBUG("This is the file: %s\n", problem::input_file.c_str());
-                        //
-                        ptrace(PTRACE_KILL, userexe);
-                        break;
-                    }//end if
-
-                    //MLE
-//                    LOG_DEBUG("old memory: %d , new memory: %d", problem::memory_usage,
-//                            rused.ru_minflt *(getpagesize()/judge_conf::KILO));
-                    int tempmemory = 0;
-
-                    if (Langs[problem::lang]->VMrunning)
-                    {
-                        tempmemory = rused.ru_minflt *(getpagesize()/judge_conf::KILO);
                     }
                     else
                     {
-                        tempmemory = getmemory(userexe);
+                        LOG_BUG("abort quit code: %d\n", WEXITSTATUS(status));
+                        problem::result = judge_conf::OJ_RE_JAVA;
                     }
-                    problem::memory_usage = Max(problem::memory_usage, tempmemory);
-                    if (problem::memory_usage > problem::memory_limit)
-                    {
-                        problem::result = judge_conf::OJ_MLE;
-                        ptrace(PTRACE_KILL, userexe);
-                        break;
-                    }
+                    break;
+                }
 
-                    //检查userexe的syscall
-                    if (ptrace(PTRACE_GETREGS, userexe, 0, &regs) < 0)
+                // 收到信号
+                // RE/TLE/OLE     超过sterlimit限制而结束
+                // 且过滤掉被ptrace暂停的 SIGTRAP
+                if (WIFSIGNALED(status) || (WIFSTOPPED(status) && WSTOPSIG(status) != SIGTRAP))
+                {
+                    int signo = 0;
+                    if (WIFSIGNALED(status))
+                        signo = WTERMSIG(status);
+                    else
+                        signo = WSTOPSIG(status);
+                    switch (signo)
                     {
-                        LOG_BUG("error ptrace ptrace_getregs, %d:%s", errno, strerror(errno));
-                        output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_JUDGE);
-                        exit(judge_conf::EXIT_JUDGE);
+                        //TLE
+                        //            case SIGALRM:
+                        //LOG_BUG("ALRM");
+                    case SIGXCPU:
+                        //LOG_BUG("XCPU");
+                        //            case SIGVTALRM:
+                        //LOG_BUG("TALRM");
+                    case SIGKILL:
+                        //LOG_BUG("KILL");
+                        problem::result = judge_conf::OJ_TLE;
+                        problem::time_usage = problem::time_limit;
+                        break;
+                    //OLE
+                    case SIGXFSZ:
+                        problem::result = judge_conf::OJ_OLE;
+                        break;
+                    case SIGSEGV:
+                        problem::result = judge_conf::OJ_RE_SEGV;
+                        break;
+                    case SIGABRT:
+                        problem::result = judge_conf::OJ_RE_ABRT;
+                        break;
+                    default:
+                        problem::result = judge_conf::OJ_RE_UNKNOW;
                     }
+                    //This is a debug
+                    LOG_DEBUG("This is the file: %s\n", problem::input_file.c_str());
+                    //
+                    ptrace(PTRACE_KILL, userexe);
+                    break;
+                } //end if
+
+                //MLE
+                //                    LOG_DEBUG("old memory: %d , new memory: %d", problem::memory_usage,
+                //                            rused.ru_minflt *(getpagesize()/judge_conf::KILO));
+                int tempmemory = 0;
+
+                if (Langs[problem::lang]->VMrunning)
+                {
+                    tempmemory = rused.ru_minflt * (getpagesize() / judge_conf::KILO);
+                }
+                else
+                {
+                    tempmemory = getmemory(userexe);
+                }
+                problem::memory_usage = Max(problem::memory_usage, tempmemory);
+                if (problem::memory_usage > problem::memory_limit)
+                {
+                    problem::result = judge_conf::OJ_MLE;
+                    ptrace(PTRACE_KILL, userexe);
+                    break;
+                }
+
+                //检查userexe的syscall
+                if (ptrace(PTRACE_GETREGS, userexe, 0, &regs) < 0)
+                {
+                    LOG_BUG("error ptrace ptrace_getregs, %d:%s", errno, strerror(errno));
+                    output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_JUDGE);
+                    exit(judge_conf::EXIT_JUDGE);
+                }
 #ifdef __i386__
-                    syscall_id = regs.orig_eax;
+                syscall_id = regs.orig_eax;
 #else
-                    syscall_id = regs.orig_rax;
+                syscall_id = regs.orig_rax;
 #endif
 
-                    // 取消对 Java 安全性检查，否则该评测机不能正常运行
-                    if (judge_conf::LANG_JAVA != problem::lang && syscall_id > 0 && (!is_valid_syscall(problem::lang, syscall_id, userexe, regs)))
-                    {
-                        LOG_WARNING("error for syscall %d", syscall_id);
-                        problem::result = judge_conf::OJ_RF;
-                        problem::time_usage = syscall_id;
-                        ptrace(PTRACE_KILL, userexe, NULL, NULL);
-                        break;
-                    }
+                // 取消对 Java 安全性检查，否则该评测机不能正常运行
+                if (judge_conf::LANG_JAVA != problem::lang && syscall_id > 0 && (!is_valid_syscall(problem::lang, syscall_id, userexe, regs)))
+                {
+                    LOG_WARNING("error for syscall %d", syscall_id);
+                    problem::result = judge_conf::OJ_RF;
+                    problem::time_usage = syscall_id;
+                    ptrace(PTRACE_KILL, userexe, NULL, NULL);
+                    break;
+                }
 
-                    if (ptrace(PTRACE_SYSCALL, userexe, NULL, NULL) < 0)
-                    {
-                        LOG_BUG("error ptrace ptrace syscall, %d:%s", errno, strerror(errno));
-                        output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_JUDGE);
-                        exit(judge_conf::EXIT_JUDGE);
-                    }
-                }//while (true)
-            }//else     userexe end
+                if (ptrace(PTRACE_SYSCALL, userexe, NULL, NULL) < 0)
+                {
+                    LOG_BUG("error ptrace ptrace syscall, %d:%s", errno, strerror(errno));
+                    output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_JUDGE);
+                    exit(judge_conf::EXIT_JUDGE);
+                }
+            } //while (true)
+        }     //else     userexe end
 
-            // if (problem::result == judge_conf::OJ_RF) break;
+        // if (problem::result == judge_conf::OJ_RF) break;
 
-            int time_tmp = rused.ru_utime.tv_sec*1000 + rused.ru_utime.tv_usec/1000
-              + rused.ru_stime.tv_sec*1000 + rused.ru_stime.tv_usec/1000;
-            if (problem::time_usage < time_tmp)
-            {
-                problem::time_usage = time_tmp;
-            }
+        int time_tmp = rused.ru_utime.tv_sec * 1000 + rused.ru_utime.tv_usec / 1000 + rused.ru_stime.tv_sec * 1000 + rused.ru_stime.tv_usec / 1000;
+        if (problem::time_usage < time_tmp)
+        {
+            problem::time_usage = time_tmp;
+        }
 
-            //LOG_DEBUG("time_usage(%d).", problem::time_usage);
+        //LOG_DEBUG("time_usage(%d).", problem::time_usage);
 
-            if (problem::time_usage > problem::time_limit)
-            {
-                problem::time_usage = problem::time_limit;
-                problem::result = judge_conf::OJ_TLE;
-            }
+        if (problem::time_usage > problem::time_limit)
+        {
+            problem::time_usage = problem::time_limit;
+            problem::result = judge_conf::OJ_TLE;
+        }
 
-            if (problem::memory_usage > problem::memory_limit)
-            {
-                problem::memory_usage = problem::memory_limit;
-                problem::result = judge_conf::OJ_MLE;
-            }
+        if (problem::memory_usage > problem::memory_limit)
+        {
+            problem::memory_usage = problem::memory_limit;
+            problem::result = judge_conf::OJ_MLE;
+        }
 
-            // if (problem::result != judge_conf::OJ_AC && problem::result != judge_conf::OJ_PE)
-            // {
-            //     break;
-            // }
-            json j = json::object();
-            j["uuid"] = nametmp;
-            j["judge"] = problem::result;
-            j["time"] = problem::time_usage;
-            j["memory"] = problem::memory_usage;
-            result.push_back(j);
+        // if (problem::result != judge_conf::OJ_AC && problem::result != judge_conf::OJ_PE)
+        // {
+        //     break;
+        // }
+        json j = json::object();
+        j["uuid"] = nametmp;
+        j["judge"] = problem::result;
+        j["time"] = problem::time_usage;
+        j["memory"] = problem::memory_usage;
+        result.push_back(j);
 
         // }//if (isInfile())
 
-    }//end while, next input file
+    } //end while, next input file
     // output_result(problem::result, problem::memory_usage, problem::time_usage);
     output_result(result, problem::temp_dir + "/result.json");
     return 0;
