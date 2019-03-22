@@ -488,6 +488,13 @@ void set_limit()
 int Compiler()
 {
     int status = 0;
+    // 当执行fork()函数后，会生成一个子进程，子进程的执行从fork()的返回值开始且代码继续往下执行。
+
+    // 所以fork()执行一次后会有两次返回值：
+    //      第一次为原来的进程，即父进程会有一次返回值，表示新生成的子进程的进程ID；
+    //      第二次为子进程的起始执行，返回值为0。
+
+    // 如果返回值为-1，则表示创建子进程失败，可能通过errno定位失败原因。
     pid_t compiler = fork();
     if (compiler < 0)
     {
@@ -495,19 +502,27 @@ int Compiler()
         output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_COMPILE);
         exit(judge_conf::EXIT_COMPILE);
     }
-    else if (compiler == 0)
+    else if (compiler == 0) //子进程内执行编译
     {
         chdir(problem::temp_dir.c_str());
+        // 重定向输入输出流
         freopen("ce.txt", "w", stderr);    //编译出错信息
         freopen("/dev/null", "w", stdout); //防止编译器在标准输出中输出额外的信息影响评测
+        // 又设置一次限制？
         malarm(ITIMER_REAL, judge_conf::compile_time_limit);
+        // 执行编译 （命令， 参数）
+        // 成功函数不返回（子进程中直接结束进程）  失败返回 -1
         execvp(Langs[problem::lang]->CompileCmd[0], (char *const *)Langs[problem::lang]->CompileCmd);
+        
+        // 往下执行了说明编译出错了
         //execvp    error
         LOG_WARNING("compile evecvp error");
         exit(judge_conf::EXIT_COMPILE);
     }
-    else
+    else // 父进程等待子进程
     {
+        //  函数定义 pid_t waitpid(pid_t pid,int * status,int options);
+        // 等待子进程结束
         waitpid(compiler, &status, 0);
         return status;
     }
@@ -606,6 +621,7 @@ int main(int argc, char *argv[])
     //运行 judge
     DIR *dp;
     struct dirent *dirp;
+    // 打开 数据所在目录
     dp = opendir(problem::data_dir.c_str());
     if (dp == NULL)
     {
@@ -614,6 +630,7 @@ int main(int argc, char *argv[])
         return judge_conf::EXIT_PRE_JUDGE;
     }
     // char nametmp[1024];
+    // 遍历meta文件中testcases uuid 对应的测试文件
     for (auto &testcase : meta["testcases"])
     {
         struct rusage rused;
@@ -626,6 +643,7 @@ int main(int argc, char *argv[])
         problem::Problem_debug();
 #endif
 
+        // 创建子进程进行判题
         pid_t userexe = fork();
         if (userexe < 0)
         {
@@ -633,7 +651,7 @@ int main(int argc, char *argv[])
             output_result(judge_conf::OJ_SE, -errno, judge_conf::EXIT_PRE_JUDGE);
             exit(judge_conf::EXIT_PRE_JUDGE);
         }
-        else if (userexe == 0)
+        else if (userexe == 0) //子进程内部
         {
 
             signal(SIGSEGV, sigseg);
@@ -707,7 +725,7 @@ int main(int argc, char *argv[])
             int errsa = errno;
             exit(judge_conf::EXIT_PRE_JUDGE_EXECLP);
         }
-        else
+        else //父进程
         {
             //父进程监控子进程的状态和系统调用
 

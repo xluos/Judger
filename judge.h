@@ -27,7 +27,7 @@ const char config_file[] = "config.ini";
 
 std::string log_file = "log.txt";
 
-std::string sysuser = "kidx";
+std::string sysuser = "judge";
 
 int judge_time_limit = 40000;
 
